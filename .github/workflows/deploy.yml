@@ -1,0 +1,63 @@
+name: Deploy Lambdas to AWS
+
+on:
+  push:
+    branches:
+      - main  # Cambia si usas otra rama principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: pip install aws-sam-cli
+
+      - name: Deploy Lambdas
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          # Recorremos cada subcarpeta en app/
+          for dir in app/*; do
+            if [ -d "$dir" ]; then
+              function_name=$(basename $dir)
+              echo "Desplegando función: $function_name"
+
+              # Crear carpeta temporal para empaquetar
+              mkdir -p temp/$function_name
+              cp -R $dir/* temp/$function_name/
+
+              # Crear el archivo template.yaml dinámico
+              cat <<EOT > temp/template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  $function_name:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ${function_name}.lambda_handler
+      Runtime: python3.9
+      CodeUri: temp/$function_name/
+      MemorySize: 128
+      Timeout: 10
+      Policies: AWSLambdaBasicExecutionRole
+EOT
+
+              # Empaquetar y desplegar
+              sam build --template-file temp/template.yaml
+              sam deploy --stack-name $function_name-stack --capabilities CAPABILITY_IAM --region us-east-1
+
+              # Limpiar
+              rm -rf temp/$function_name
+            fi
+          done
