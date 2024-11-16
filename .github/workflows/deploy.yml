@@ -48,18 +48,6 @@ jobs:
           # Crear archivo template.yaml dinámico
           cat <<EOT > temp/template.yaml
 
-AWSTemplateFormatVersion: '2010-09-09'
-Resources:
-  LambdaFunction:
-    Type: 'AWS::Serverless::Function'
-    Properties:
-      FunctionName: $LAMBDA_FUNCTION_NAME
-      Handler: app.saludo_simple  # Cambia según tu función Lambda
-      Runtime: python3.9
-      CodeUri: $LAMBDA_FUNCTION_NAME
-      Timeout: 30
-      MemorySize: 128
-
           # Construir y desplegar la función
           sam build --template-file temp/template.yaml
           sam deploy --stack-name $LAMBDA_FUNCTION_NAME-stack --capabilities CAPABILITY_IAM
