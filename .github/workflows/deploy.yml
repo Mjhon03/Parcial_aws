@@ -1,4 +1,4 @@
-name: Deploy Lambdas to AWS
+name: Deploy Single Lambda to AWS
 
 on:
   push:
@@ -10,41 +10,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout del código fuente
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Configurar Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
 
-      - name: Install dependencies
+      # 3. Instalar dependencias necesarias (SAM CLI)
+      - name: Install AWS SAM CLI
         run: pip install aws-sam-cli
 
-      - name: Deploy Lambdas
+      # 4. Configurar variables de entorno con credenciales de AWS
+      - name: Deploy Lambda Function
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-2
+          AWS_DEFAULT_REGION: us-east-1
         run: |
-          # Recorremos cada subcarpeta en app/
-          for dir in app/*; do
-            if [ -d "$dir" ]; then
-              function_name=$(basename $dir)
-              echo "Desplegando función: $function_name"
+          # Nombre de la función y directorio de trabajo
+          LAMBDA_FUNCTION_NAME="saludo_simple"
+          FUNCTION_DIR="app/saludo_simple"
 
-              # Crear carpeta temporal para empaquetar
-              mkdir -p temp/$function_name
-              cp -R $dir/* temp/$function_name/
+          # Verificar que el directorio exista
+          if [ ! -d "$FUNCTION_DIR" ]; then
+            echo "El directorio $FUNCTION_DIR no existe. Revisa la configuración."
+            exit 1
+          fi
 
-              # Crear el archivo template.yaml dinámico
-              cat <<EOT > temp/template.yaml
+          # Crear carpeta temporal para empaquetar
+          mkdir -p temp/$LAMBDA_FUNCTION_NAME
+          cp -R $FUNCTION_DIR/* temp/$LAMBDA_FUNCTION_NAME/
 
-              # Empaquetar y desplegar
-              sam build --template-file temp/template.yaml
-              sam deploy --stack-name $function_name-stack --capabilities CAPABILITY_IAM --region us-east-1
+          # Crear archivo template.yaml dinámico
+          cat <<EOT > temp/template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: $LAMBDA_FUNCTION_NAME
+      Handler: app.handler  # Cambia según tu función Lambda
+      Runtime: python3.9
+      CodeUri: $LAMBDA_FUNCTION_NAME
+      Timeout: 30
+      MemorySize: 128
+EOT
 
-              # Limpiar
-              rm -rf temp/$function_name
-            fi
-          done
+          # Construir y desplegar la función
+          sam build --template-file temp/template.yaml
+          sam deploy --stack-name $LAMBDA_FUNCTION_NAME-stack --capabilities CAPABILITY_IAM
+
+          # Limpiar archivos temporales
+          rm -rf temp/
