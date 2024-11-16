@@ -47,6 +47,7 @@ jobs:
 
           # Crear archivo template.yaml dinámico
           cat <<EOT > temp/template.yaml
+
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   LambdaFunction:
@@ -58,7 +59,6 @@ Resources:
       CodeUri: $LAMBDA_FUNCTION_NAME
       Timeout: 30
       MemorySize: 128
-EOT
 
           # Construir y desplegar la función
           sam build --template-file temp/template.yaml
