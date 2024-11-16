@@ -27,17 +27,17 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-  for dir in app/*; do
-    if [ -d "$dir" ]; then
-      function_name=$(basename $dir)
-      echo "Desplegando función: $function_name"
+          for dir in app/*; do
+            if [ -d "$dir" ]; then
+              function_name=$(basename $dir)
+              echo "Desplegando función: $function_name"
 
-      # Crear carpeta temporal para empaquetar
-      mkdir -p temp/$function_name
-      cp -R $dir/* temp/$function_name/
+              # Crear carpeta temporal para empaquetar
+              mkdir -p temp/$function_name
+              cp -R $dir/* temp/$function_name/
 
-      # Crear el archivo template.yaml dinámico
-      echo "
+              # Crear el archivo template.yaml dinámico
+              echo "
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
