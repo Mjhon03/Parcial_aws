@@ -53,7 +53,7 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       FunctionName: $LAMBDA_FUNCTION_NAME
-      Handler: app.saludo_simple.saludo_simple  # Cambia según tu función Lambda
+      Handler: app.saludo_simple  # Cambia según tu función Lambda
       Runtime: python3.9
       CodeUri: $LAMBDA_FUNCTION_NAME
       Timeout: 30
