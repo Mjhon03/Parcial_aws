@@ -27,18 +27,17 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          # Recorremos cada subcarpeta en app/
-          for dir in app/*; do
-            if [ -d "$dir" ]; then
-              function_name=$(basename $dir)
-              echo "Desplegando función: $function_name"
+  for dir in app/*; do
+    if [ -d "$dir" ]; then
+      function_name=$(basename $dir)
+      echo "Desplegando función: $function_name"
 
-              # Crear carpeta temporal para empaquetar
-              mkdir -p temp/$function_name
-              cp -R $dir/* temp/$function_name/
+      # Crear carpeta temporal para empaquetar
+      mkdir -p temp/$function_name
+      cp -R $dir/* temp/$function_name/
 
-              # Crear el archivo template.yaml dinámico
-              cat <<EOT > temp/template.yaml
+      # Crear el archivo template.yaml dinámico
+      echo "
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
@@ -51,13 +50,13 @@ Resources:
       MemorySize: 128
       Timeout: 10
       Policies: AWSLambdaBasicExecutionRole
-EOT
+" > temp/template.yaml
 
-              # Empaquetar y desplegar
-              sam build --template-file temp/template.yaml
-              sam deploy --stack-name $function_name-stack --capabilities CAPABILITY_IAM --region us-east-1
+      # Empaquetar y desplegar
+      sam build --template-file temp/template.yaml
+      sam deploy --stack-name $function_name-stack --capabilities CAPABILITY_IAM --region us-east-1
 
-              # Limpiar
-              rm -rf temp/$function_name
-            fi
-          done
+      # Limpiar
+      rm -rf temp/$function_name
+    fi
+  done
