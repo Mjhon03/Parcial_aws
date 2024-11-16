@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  LambdaFunction1:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.saludo_simple.saludo_simple  # Ruta del archivo y método
+      Runtime: python3.9
+      CodeUri: app/saludo_simple/
+      Timeout: 10
+      MemorySize: 128
+
+  LambdaFunction2:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.saludo_personalizado.saludo_personalizado
+      Runtime: python3.9
+      CodeUri: app/saludo_personalizado/
+      Timeout: 10
+      MemorySize: 128
+  
+  LambdaFunction3:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.calculadora_basica.calculadora_basica
+      Runtime: python3.9
+      CodeUri: app/calculadora_basica/
+      Timeout: 10
+      MemorySize: 128
+
+  LambdaFunction4:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.procesamiento_texto.procesamiento_texto
+      Runtime: python3.9
+      CodeUri: app/procesamiento_texto/
+      Timeout: 10
+      MemorySize: 128
+
+  LambdaFunction5:
+      Type: AWS::Serverless::Function
+      Properties:
+        Handler: app.dynamoDB_estudiantes.dynamoDB_estudiantes
+        Runtime: python3.9
+        CodeUri: app/dynamoDB_estudiantes/
+        Timeout: 10
+        MemorySize: 128
