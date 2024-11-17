@@ -33,7 +33,7 @@ jobs:
         run: |
           # Nombre de la función y directorio de trabajo
           LAMBDA_FUNCTION_NAME="saludo_simple"
-          FUNCTION_DIR="app/saludo_simple"
+          FUNCTION_DIR="app/saludo_simple/"
 
           # Verificar que el directorio exista
           if [ ! -d "$FUNCTION_DIR" ]; then
