@@ -1,8 +1,11 @@
-name: deploy-py-lambda
+- name: Py Lambda Deploy
+  uses: mariamrf/py-lambda-action@v1.0.1
+
 on:
   push:
     branches:
       - master
+      
 jobs:
   build:
     runs-on: ubuntu-latest
