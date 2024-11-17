@@ -49,10 +49,10 @@ Resources:
   ${LAMBDA_FUNCTION_NAME}:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: ${LAMBDA_FUNCTION_NAME}
-      Handler: saludo_simple.saludo_simple.handler  # Cambia según tu handler
+      FunctionName: saludo_simple
+      Handler: saludo_simple.saludo_simple # Cambia según tu handler
       Runtime: python3.9
-      CodeUri: ${FUNCTION_DIR}
+      CodeUri: app/saludo_simple
       Timeout: 30
       MemorySize: 128
 EOT
