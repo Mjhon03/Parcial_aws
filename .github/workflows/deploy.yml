@@ -1,56 +1,22 @@
-name: Deploy Single Lambda to AWS
+name: Deploy single Lambda 
 
 on:
   push:
     branches:
-      - main  # Cambia si usas otra rama principal
+      -main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+  runs-on: ubuntu-latest
 
-    steps:
-      # 1. Checkout del código fuente
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. Configurar Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      # 3. Instalar dependencias necesarias (SAM CLI)
-      - name: Install AWS SAM CLI
-        run: pip install aws-sam-cli
-
-      # 4. Configurar variables de entorno con credenciales de AWS
-      - name: Deploy Lambda Function
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-        run: |
-          # Nombre de la función y directorio de trabajo
-          LAMBDA_FUNCTION_NAME="saludo_simple"
-          FUNCTION_DIR="app/saludo_simple"
-
-          # Verificar que el directorio exista
-          if [ ! -d "$FUNCTION_DIR" ]; then
-            echo "El directorio $FUNCTION_DIR no existe. Revisa la configuración."
-            exit 1
-          fi
-
-          # Crear carpeta temporal para empaquetar
-          mkdir -p temp/$LAMBDA_FUNCTION_NAME
-          cp -R $FUNCTION_DIR/* temp/$LAMBDA_FUNCTION_NAME/
-
-          # Crear archivo template.yaml dinámico
-          cat <<EOT > temp/template.yaml
-
-          # Construir y desplegar la función
-          sam build --template-file temp/template.yaml
-          sam deploy --stack-name $LAMBDA_FUNCTION_NAME-stack --capabilities CAPABILITY_IAM
-
-          # Limpiar archivos temporales
-          rm -rf temp/
+  steps:
+    - name: checkout source code
+      uses: actions/checkout@v3
+    - name: deploy suma lambda
+      uses: appleboy/lambda-action@v0.2.0
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ secrets.AWS_REGION }}
+        function_name: suma
+        source: app.saludo_simple.saludo_simple.py
