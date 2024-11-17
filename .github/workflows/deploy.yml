@@ -41,24 +41,25 @@ jobs:
             exit 1
           fi
 
-          # Crear un template.yaml dinámico
-          cat <<EOT > template.yaml
+          # Crear un archivo template.yaml dinámico con las variables reemplazadas
+          echo "Generando archivo template.yaml"
+          cat > template.yaml <<EOT
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  $LAMBDA_FUNCTION_NAME:
+  ${LAMBDA_FUNCTION_NAME}:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: $LAMBDA_FUNCTION_NAME
+      FunctionName: ${LAMBDA_FUNCTION_NAME}
       Handler: saludo_simple.saludo_simple.handler  # Cambia según tu handler
       Runtime: python3.9
-      CodeUri: $FUNCTION_DIR
+      CodeUri: ${FUNCTION_DIR}
       Timeout: 30
       MemorySize: 128
 EOT
 
           # Construir y desplegar con SAM
           sam build --template-file template.yaml
-          sam deploy --stack-name $LAMBDA_FUNCTION_NAME-stack --capabilities CAPABILITY_IAM
+          sam deploy --stack-name ${LAMBDA_FUNCTION_NAME}-stack --capabilities CAPABILITY_IAM
 
           # Limpieza
           rm -f template.yaml
