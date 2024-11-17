@@ -1,65 +1,20 @@
-name: Deploy Lambda Function
-
+name: deploy-py-lambda
 on:
   push:
     branches:
-      - main  # Cambia si usas otra rama principal
-
+      - master
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      # 1. Checkout del código fuente
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. Configurar Python
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      # 3. Instalar dependencias necesarias (SAM CLI)
-      - name: Install AWS SAM CLI
-        run: pip install aws-sam-cli
-
-      # 4. Configurar variables de entorno y desplegar Lambda
-      - name: Deploy Lambda Function
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-        run: |
-          # Directorio de la función y nombre
-          LAMBDA_FUNCTION_NAME="saludo_simple"
-          FUNCTION_DIR="app/$LAMBDA_FUNCTION_NAME"
-
-          # Validar que el directorio de la función exista
-          if [ ! -d "$FUNCTION_DIR" ]; then
-            echo "El directorio $FUNCTION_DIR no existe. Verifica la estructura del proyecto."
-            exit 1
-          fi
-
-          # Crear un archivo template.yaml dinámico con las variables reemplazadas
-          echo "Generando archivo template.yaml"
-          cat > template.yaml <<EOT
-AWSTemplateFormatVersion: '2010-09-09'
-Resources:
-  saludo_simple:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: saludo_simple
-      Handler: saludo_simple.saludo_simple # Cambia según tu handler
-      Runtime: python3.9
-      CodeUri: app/saludo_simple
-      Timeout: 30
-      MemorySize: 128
-EOT
-
-          # Construir y desplegar con SAM
-          sam build --template-file template.yaml
-          sam deploy --stack-name ${LAMBDA_FUNCTION_NAME}-stack --capabilities CAPABILITY_IAM
-
-          # Limpieza
-          rm -f template.yaml
+    - uses: actions/checkout@master
+    - name: Deploy code to Lambda
+      uses: mariamrf/py-lambda-action@v1.0.0
+      with:
+        lambda_layer_arn: 'arn:aws:lambda:us-east-2:980921721645:function:saludo_simple'
+        lambda_function_name: 'saludo_simple'
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: 'us-east-2'
