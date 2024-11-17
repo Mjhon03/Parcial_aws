@@ -1,4 +1,4 @@
-name: Deploy Single Lambda to AWS
+name: Deploy Lambda Function
 
 on:
   push:
@@ -24,33 +24,41 @@ jobs:
       - name: Install AWS SAM CLI
         run: pip install aws-sam-cli
 
-      # 4. Configurar variables de entorno con credenciales de AWS
+      # 4. Configurar variables de entorno y desplegar Lambda
       - name: Deploy Lambda Function
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-2
+          AWS_DEFAULT_REGION: us-east-1
         run: |
-          # Nombre de la función y directorio de trabajo
+          # Directorio de la función y nombre
           LAMBDA_FUNCTION_NAME="saludo_simple"
-          FUNCTION_DIR="app/saludo_simple/"
+          FUNCTION_DIR="app/$LAMBDA_FUNCTION_NAME"
 
-          # Verificar que el directorio exista
+          # Validar que el directorio de la función exista
           if [ ! -d "$FUNCTION_DIR" ]; then
-            echo "El directorio $FUNCTION_DIR no existe. Revisa la configuración."
+            echo "El directorio $FUNCTION_DIR no existe. Verifica la estructura del proyecto."
             exit 1
           fi
 
-          # Crear carpeta temporal para empaquetar
-          mkdir -p temp/$LAMBDA_FUNCTION_NAME
-          cp -R $FUNCTION_DIR/* temp/$LAMBDA_FUNCTION_NAME/
+          # Crear un template.yaml dinámico
+          cat <<EOT > template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  $LAMBDA_FUNCTION_NAME:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: $LAMBDA_FUNCTION_NAME
+      Handler: saludo_simple.saludo_simple.handler  # Cambia según tu handler
+      Runtime: python3.9
+      CodeUri: $FUNCTION_DIR
+      Timeout: 30
+      MemorySize: 128
+EOT
 
-          # Crear archivo template.yaml dinámico
-          cat <<EOT > temp/template.yaml
-
-          # Construir y desplegar la función
-          sam build --template-file temp/template.yaml
+          # Construir y desplegar con SAM
+          sam build --template-file template.yaml
           sam deploy --stack-name $LAMBDA_FUNCTION_NAME-stack --capabilities CAPABILITY_IAM
 
-          # Limpiar archivos temporales
-          rm -rf temp/
+          # Limpieza
+          rm -f template.yaml
