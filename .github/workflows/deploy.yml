@@ -48,7 +48,7 @@ jobs:
             aws lambda create-function \
               --function-name "${function_name}" \
               --runtime python3.9 \
-              --role "arn:aws:iam::980921721645:role/your-lambda-execution-role" \
+              --role "arn:aws:iam::980921721645:user/AWS_Integration" \
               --handler "$(basename "${file}" .py).handler" \
               --zip-file fileb://package/function.zip \
               --timeout 30 \
