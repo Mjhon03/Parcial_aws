@@ -1,21 +1,45 @@
-name: deploy-py-lambda
+name: Deploy Python Lambda Function
 
 on:
   push:
     branches:
-      - main
+      - main  
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@master
-    - name: Deploy code to Lambda
-      uses: mariamrf/py-lambda-action@v1.0.0
-      with:
-        lambda_layer_arn: 'arn:aws:lambda:us-east-2:980921721645:function:saludo_simple'
-        lambda_function_name: 'saludo_simple'
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: 'us-east-2'
+      
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      
+      - name: Zip the function code
+        run: |
+          mkdir -p package
+          cp app/saludo_simple/saludo_simple.py package/
+          cd package
+          zip -r function.zip saludo_simple.py
+          cd ..
+
+      
+      - name: Deploy to Lambda
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-east-2'
+        run: |
+          aws lambda update-function-code \
+            --function-name saludo_simple \
+            --zip-file fileb://package/function.zip
+
+      
+      - name: Cleanup
+        run: rm -rf package/
