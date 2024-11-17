@@ -1,45 +1,64 @@
-name: Deploy Python Lambda Function
+name: Deploy Multiple Lambda Functions
 
 on:
   push:
     branches:
-      - main  
+      - main  # Cambia si tu rama principal tiene otro nombre
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      
+      # 1. Checkout del código fuente
       - name: Checkout code
         uses: actions/checkout@v3
 
-      
+      # 2. Instalar AWS CLI
       - name: Install AWS CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y awscli
 
-      
-      - name: Zip the function code
-        run: |
-          mkdir -p package
-          cp app/saludo_simple/saludo_simple.py package/
-          cd package
-          zip -r function.zip saludo_simple.py
-          cd ..
-
-      
-      - name: Deploy to Lambda
+      # 3. Recorrer los archivos en la carpeta 'app' y desplegar Lambdas
+      - name: Deploy Each Lambda Function
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: 'us-east-2'
         run: |
-          aws lambda update-function-code \
-            --function-name saludo_simple \
-            --zip-file fileb://package/function.zip
+          # Recorremos cada archivo Python en la carpeta 'app'
+          for file in app/*/*.py; do
+            # Obtenemos el nombre base del archivo sin extensión
+            function_name=$(basename "${file}" .py)
+            function_dir=$(dirname "${file}")
 
-      
-      - name: Cleanup
-        run: rm -rf package/
+            echo "Empaquetando y desplegando función Lambda: $function_name desde $file"
+
+            # Crear un directorio temporal para empaquetar
+            mkdir -p package
+            cp "${file}" package/
+
+            # Crear el archivo ZIP
+            cd package
+            zip -r function.zip $(basename "${file}")
+            cd ..
+
+            # Crear la función Lambda
+            aws lambda create-function \
+              --function-name "${function_name}" \
+              --runtime python3.9 \
+              --role "arn:aws:iam::980921721645:role/your-lambda-execution-role" \
+              --handler "$(basename "${file}" .py).handler" \
+              --zip-file fileb://package/function.zip \
+              --timeout 30 \
+              --memory-size 128 || echo "La función ya existe. Actualizando el código..."
+
+            # Si la función ya existe, actualizar el código
+            aws lambda update-function-code \
+              --function-name "${function_name}" \
+              --zip-file fileb://package/function.zip
+
+            # Limpiar los archivos temporales
+            rm -rf package/
+          done
