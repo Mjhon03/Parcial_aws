@@ -1,4 +1,4 @@
-- name: Py Lambda Deploy
+name: Py Lambda Deploy
   uses: mariamrf/py-lambda-action@v1.0.1
 
 on:
