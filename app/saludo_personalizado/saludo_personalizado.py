@@ -3,29 +3,28 @@ import json
 def saludo_personalizado(event, context):
     """
     Lambda function to return a personalized greeting.
-    Validates if the 'nombre' parameter is provided in the query string.
-
-    Args:
-        event (dict): The event payload containing request data.
-        context (object): AWS Lambda context object.
-
-    Returns:
-        dict: HTTP response with greeting or error message.
+    Supports input from query string or body.
     """
     params = event.get("queryStringParameters", {})
+    nombre = params.get("nombre") if params else None
 
-    if not params or "nombre" not in params:
-      if params["nombre"] == "":
-          return {
-              "statusCode": 400,
-              "body": json.dumps({"error": "El parámetro 'nombre' es obligatorio."}),
-              "headers": {"Content-Type": "application/json"}
-          }
+    if not nombre:
+        try:
+            body = json.loads(event.get("body", "{}"))
+            nombre = body.get("nombre", "").strip()
+        except Exception:
+            nombre = None
 
-    nombre = params["nombre"]
+    if not nombre:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"error": "El parámetro 'nombre' es obligatorio y no puede estar vacío."}),
+            "headers": {"Content-Type": "application/json"}
+        }
 
     return {
         "statusCode": 200,
         "body": json.dumps({"message": f"Hola, {nombre}!"}),
         "headers": {"Content-Type": "application/json"}
     }
+
