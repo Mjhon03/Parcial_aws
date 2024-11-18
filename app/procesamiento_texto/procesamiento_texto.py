@@ -13,9 +13,8 @@ def procesamiento_texto(event, context):
         dict: HTTP response with word count, character count, and uppercase text.
     """
     try:
-        body = json.loads(event.get("body", "{}"))
-
-        texto = body.get("texto")
+        # Obtener el texto directamente desde el evento
+        texto = event.get("texto")
         if not texto:
             return {
                 "statusCode": 400,
@@ -23,10 +22,12 @@ def procesamiento_texto(event, context):
                 "headers": {"Content-Type": "application/json"}
             }
 
+        # Procesar el texto
         palabras = len(texto.split())
         caracteres = len(texto)
         texto_mayusculas = texto.upper()
 
+        # Respuesta
         respuesta = {
             "palabras": palabras,
             "caracteres": caracteres,
@@ -39,9 +40,10 @@ def procesamiento_texto(event, context):
             "headers": {"Content-Type": "application/json"}
         }
 
-    except json.JSONDecodeError:
+    except Exception as e:
+        # Manejo de errores generales
         return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "El cuerpo de la solicitud debe estar en formato JSON válido."}),
+            "statusCode": 500,
+            "body": json.dumps({"error": f"Error interno del servidor: {str(e)}"}),
             "headers": {"Content-Type": "application/json"}
         }
