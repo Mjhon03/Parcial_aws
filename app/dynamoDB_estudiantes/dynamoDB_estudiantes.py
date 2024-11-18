@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 # Crear un cliente de DynamoDB
 dynamodb = boto3.client("dynamodb")
 
-def lambda_handler(event, context):
+def dynamoDB_estudiantes(event, context):
     """
     Lambda function to fetch student data from a DynamoDB table.
 
