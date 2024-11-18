@@ -3,7 +3,7 @@ import json
 def calculadora_basica(event, context):
     """
     Lambda function to perform basic arithmetic operations (+, -, *, /).
-    Validates that 'a' and 'b' are numeric and 'operator' is valid.
+    Validates that 'a' and 'b' are numeric and 'operador' is valid.
 
     Args:
         event (dict): The event payload containing request data.
@@ -15,16 +15,16 @@ def calculadora_basica(event, context):
     # Obtener los parámetros de la URL
     params = event.get("queryStringParameters", {})
 
-    if not params or not all(key in params for key in ["a", "b", "operator"]):
+    if not params or not all(key in params for key in ["a", "b", "operador"]):
         return {
             "statusCode": 400,
-            "body": json.dumps({"error": "Los parámetros 'a', 'b' y 'operator' son obligatorios."}),
+            "body": json.dumps({"error": "Los parámetros 'a', 'b' y 'operador' son obligatorios."}),
             "headers": {"Content-Type": "application/json"}
         }
 
     a = params.get("a")
     b = params.get("b")
-    operator = params.get("operator")
+    operador = params.get("operador")
 
     try:
         a = float(a)
@@ -36,7 +36,7 @@ def calculadora_basica(event, context):
             "headers": {"Content-Type": "application/json"}
         }
 
-    if operator not in ["+", "-", "*", "/"]:
+    if operador not in ["+", "-", "*", "/"]:
         return {
             "statusCode": 400,
             "body": json.dumps({"error": "El operador debe ser uno de los siguientes: +, -, *, /."}),
@@ -44,13 +44,13 @@ def calculadora_basica(event, context):
         }
 
     try:
-        if operator == "+":
+        if operador == "+":
             resultado = a + b
-        elif operator == "-":
+        elif operador == "-":
             resultado = a - b
-        elif operator == "*":
+        elif operador == "*":
             resultado = a * b
-        elif operator == "/":
+        elif operador == "/":
             if b == 0:
                 raise ZeroDivisionError("No se puede dividir por cero.")
             resultado = a / b
